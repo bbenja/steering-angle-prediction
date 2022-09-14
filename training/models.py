@@ -22,7 +22,7 @@ def weighted_loss(y_true, y_pred):
 
 input_shape = (32, 32, 3)
 patch_size = (2, 2)  # 2-by-2 sized patches
-dropout_rate = 0.05  # Dropout rate 0.03, 0.05 je dobar
+dropout_rate = 0.05  # Dropout rate
 num_heads = 8  # Attention heads
 embed_dim = 64  # Embedding dimension
 num_mlp = 256  # MLP layer size
@@ -600,4 +600,51 @@ def build_pilotnet_model():
     model.compile(loss='mean_squared_error',
                   optimizer=optimizer,
                   metrics=['mean_absolute_error', 'mean_squared_error'])
+    return model
+
+def build_swin_v2():
+    model = Sequential(name="swin_v2")
+    model.add(PatchExtract(patch_size, input_shape=input_shape))
+    model.add(PatchEmbedding(num_patch_x * num_patch_y, embed_dim))
+    model.add(SwinBlock(
+        dim=embed_dim,
+        num_patch=(num_patch_x, num_patch_y),
+        num_heads=num_heads,
+        window_size=window_size,
+        shift_size=shift_size,
+        num_mlp=num_mlp,
+        qkv_bias=qkv_bias,
+        dropout_rate=dropout_rate,
+    ))
+    model.add(SwinBlock(
+        dim=embed_dim,
+        num_patch=(num_patch_x, num_patch_y),
+        num_heads=num_heads,
+        window_size=4,
+        shift_size=2,
+        num_mlp=num_mlp,
+        qkv_bias=qkv_bias,
+        dropout_rate=dropout_rate,
+    ))
+    model.add(SwinBlock(
+        dim=embed_dim,
+        num_patch=(num_patch_x, num_patch_y),
+        num_heads=num_heads,
+        window_size=8,
+        shift_size=4,
+        num_mlp=num_mlp,
+        qkv_bias=qkv_bias,
+        dropout_rate=dropout_rate,
+    ))
+    model.add(PatchMerging((num_patch_x, num_patch_y), embed_dim=embed_dim))
+    model.add(keras.layers.LayerNormalization(epsilon=1e-5, name="norm10"))
+    model.add(GlobalAveragePooling1D())
+    model.add(Dense(512, activation="elu", kernel_regularizer=regularizer))
+    model.add(Dense(256, activation="elu", kernel_regularizer=regularizer))
+    model.add(Dense(128, activation="elu", kernel_regularizer=regularizer))
+    model.add(Dense(1, dtype='float32'))  # activation=tf.atan
+    model.compile(loss=weighted_loss,
+                  optimizer=optimizer,
+                  metrics=['mean_absolute_error', 'mean_squared_error'])
+    model.summary()
     return model
