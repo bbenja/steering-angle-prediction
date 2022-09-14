@@ -19,7 +19,7 @@ import sys
 from albumentations import RandomBrightnessContrast
 import argparse
 
-sys.path.insert(1, 'C:\\Users\\bbenja\\Desktop\\Chen - PilotNet\\Autopilot-TensorFlow-master\\SWIN_TF')
+# sys.path.insert(1, 'C:\\Users\\bbenja\\Desktop\\x\\x\\SWIN_TF')
 from models import *
 from random import randint
 

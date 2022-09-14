@@ -67,8 +67,8 @@ def import_simulator_data(folder):
     return X, ys
 
 
-def import_kelemen_data():
-    file_names = glob("C:\\Users\\mkelemen\\resized\\data-2022-02-16*x.npy")
+def import_mk_data():
+    file_names = glob("C:\\Users\\mk\\resized\\data-2022-02-16*x.npy")
     file_names = natsorted(file_names)
     arrays = [np.load(f) for f in file_names]
     images = np.concatenate(arrays)
@@ -78,19 +78,11 @@ def import_kelemen_data():
     X = np.asarray(np.divide(images, 255.0))
     del images
 
-    file_names = glob("C:\\Users\\mkelemen\\resized\\data-2022-02-16*y.npy")
+    file_names = glob("C:\\Users\\mk\\resized\\data-2022-02-16*y.npy")
     file_names = natsorted(file_names)
     arrays = [np.load(f) for f in file_names]
     Y = np.concatenate(arrays)
     return X, Y
-
-
-def split_sequence(images, angles, n_steps):
-    X, y = list(), list()
-    for x in range(n_steps, len(angles)):
-        X.append(images[x - n_steps:x])
-        y.append(angles[x])
-    return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
 
 
 def get_indices(f, train_ds, val_ds):
@@ -107,6 +99,20 @@ def get_indices(f, train_ds, val_ds):
     val_idx = np.concatenate(val_idx)
 
     return train_idx, val_idx
+
+
+class DataGenerator(Sequence):
+    def __init__(self, x_set, y_set, batch_size):
+        self.x, self.y = x_set, y_set
+        self.batch_size = batch_size
+
+    def __len__(self):
+        return int(np.ceil(len(self.x) / float(self.batch_size)))
+
+    def __getitem__(self, idx):
+        batch_x = self.x[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_y = self.y[idx * self.batch_size:(idx + 1) * self.batch_size]
+        return batch_x, batch_y
 
 
 class LSTMGenerator(Sequence):
@@ -129,20 +135,6 @@ class LSTMGenerator(Sequence):
         return np.array(batch_x, dtype=np.float32), np.array(batch_y, dtype=np.float32)
 
 
-class DataGenerator(Sequence):
-    def __init__(self, x_set, y_set, batch_size):
-        self.x, self.y = x_set, y_set
-        self.batch_size = batch_size
-
-    def __len__(self):
-        return int(np.ceil(len(self.x) / float(self.batch_size)))
-
-    def __getitem__(self, idx):
-        batch_x = self.x[idx * self.batch_size:(idx + 1) * self.batch_size]
-        batch_y = self.y[idx * self.batch_size:(idx + 1) * self.batch_size]
-        return batch_x, batch_y
-
-
 class H5DataGenerator(Sequence):
     def __init__(self, file, indices, batch_size, augmentations, shuffle=False, threshold=0):
         self.file = file
@@ -157,7 +149,7 @@ class H5DataGenerator(Sequence):
 
     def __getitem__(self, idx):
         batch = self.indices[idx * self.batch_size: (idx + 1) * self.batch_size]
-        batch_x = [cv2.cvtColor(self.file[d]['X'][int(i)], cv2.COLOR_RGB2YUV) for d, i in batch]
+        batch_x = [self.file[d]['X'][int(i)] for d, i in batch] #cv2.cvtColor
         batch_y = [self.file[d]['y'][int(i)] for d, i in batch]
 
         if self.augmentations:

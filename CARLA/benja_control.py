@@ -146,7 +146,7 @@ try:
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
-sys.path.insert(1, 'C:\\Users\\bbenja\\Desktop\\Chen - PilotNet\\Autopilot-TensorFlow-master\\SWIN_TF')
+# sys.path.insert(1, 'C:\\Users\\bbenja\\Desktop\\x\\x\\SWIN_TF')
 from models import *
 
 # ==============================================================================
@@ -185,8 +185,6 @@ def adjust_image(saturation=50, contrast=-20.0, side_left=None, side_right=None,
         Alpha = float(131 * (contrast + 127)) / (127 * (131 - contrast))
         Gamma = 127 * (1 - Alpha)
         img = cv2.addWeighted(img, Alpha, img, 0, Gamma)
-
-
 
     if side_left is not None:
         cv2.fillConvexPoly(img, side_left, [0.0, 0.0, 0.0])
@@ -1582,6 +1580,7 @@ def game_loop(args):
                 player_location = world.player.get_location()
                 _distance += math.sqrt(((player_location.x - last_location.x) ** 2) +
                                       ((last_location.y - player_location.y) ** 2))
+                # TODO: location of end point for testing
                 if -585 < player_location.x < -583 and 268.8 < player_location.y < 272.8:
                     break
                 last_location = player_location
