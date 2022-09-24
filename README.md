@@ -1,8 +1,4 @@
 # steering-angle-prediction
-Master's thesis on novel algorithms for autonomous driving based on steering angle prediction
-
-
-<h4>steering-angle-prediction</h4>
 
 Implementation of an autonomous driving algorithm based on Swin Transformer.
 Proposed NN takes images of 32x32x3 and returns a value [0-1] representing vehicle's steering angle.
